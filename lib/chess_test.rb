@@ -99,62 +99,62 @@ class Board
 		#black pieces
 		#convert pieces to appropriate classes and make appearance correct
 		@board_array[@coordinate_hash["A1"]]=Rook.new(@board_array[@coordinate_hash["A1"]])
-		@board_array[@coordinate_hash["A1"]].update("♜")
+		@board_array[@coordinate_hash["A1"]].update("♜",3,1)
 
 		@board_array[@coordinate_hash["B1"]]=Knight.new(@board_array[@coordinate_hash["B1"]])
-		@board_array[@coordinate_hash["B1"]].update("♞")
+		@board_array[@coordinate_hash["B1"]].update("♞",3,1)
 
 		@board_array[@coordinate_hash["C1"]]=Bishop.new(@board_array[@coordinate_hash["C1"]])
-		@board_array[@coordinate_hash["C1"]].update("♝")
+		@board_array[@coordinate_hash["C1"]].update("♝",3,1)
 
 		@board_array[@coordinate_hash["D1"]]=King.new(@board_array[@coordinate_hash["D1"]])
-		@board_array[@coordinate_hash["D1"]].update("♛")
+		@board_array[@coordinate_hash["D1"]].update("♛",3,1)
 
 		@board_array[@coordinate_hash["E1"]]=Queen.new(@board_array[@coordinate_hash["E1"]])
-		@board_array[@coordinate_hash["E1"]].update("♚")
+		@board_array[@coordinate_hash["E1"]].update("♚",3,1)
 
 		@board_array[@coordinate_hash["F1"]]=Bishop.new(@board_array[@coordinate_hash["F1"]])
-		@board_array[@coordinate_hash["F1"]].update("♝")
+		@board_array[@coordinate_hash["F1"]].update("♝",3,1)
 
 		@board_array[@coordinate_hash["G1"]]=Knight.new(@board_array[@coordinate_hash["G1"]])
-		@board_array[@coordinate_hash["G1"]].update("♞")
+		@board_array[@coordinate_hash["G1"]].update("♞",3,1)
 
 		@board_array[@coordinate_hash["H1"]]=Rook.new(@board_array[@coordinate_hash["H1"]])
-		@board_array[@coordinate_hash["H1"]].update("♜")
+		@board_array[@coordinate_hash["H1"]].update("♜",3,1)
 
 		for i in @coordinate_hash["A2"]..(@coordinate_hash["H2"])
 			@board_array[i]=Pawn.new(@board_array[i])
-			@board_array[i].update("♟")
+			@board_array[i].update("♟",3,1)
 		end
 
 		#white
 		@board_array[@coordinate_hash["A8"]]=Rook.new(@board_array[@coordinate_hash["A8"]])
-		@board_array[@coordinate_hash["A8"]].update("♖")
+		@board_array[@coordinate_hash["A8"]].update("♖",3,0)
 
 		@board_array[@coordinate_hash["B8"]]=Knight.new(@board_array[@coordinate_hash["B8"]])
-		@board_array[@coordinate_hash["B8"]].update("♘")
+		@board_array[@coordinate_hash["B8"]].update("♘",3,0)
 
 		@board_array[@coordinate_hash["C8"]]=Bishop.new(@board_array[@coordinate_hash["C8"]])
-		@board_array[@coordinate_hash["C8"]].update("♗")
+		@board_array[@coordinate_hash["C8"]].update("♗",3,0)
 
 		@board_array[@coordinate_hash["D8"]]=King.new(@board_array[@coordinate_hash["D8"]])
-		@board_array[@coordinate_hash["D8"]].update("♕")
+		@board_array[@coordinate_hash["D8"]].update("♕",3,0)
 
 		@board_array[@coordinate_hash["E8"]]=Queen.new(@board_array[@coordinate_hash["E8"]])
-		@board_array[@coordinate_hash["E8"]].update("♔")
+		@board_array[@coordinate_hash["E8"]].update("♔",3,0)
 
 		@board_array[@coordinate_hash["F8"]]=Bishop.new(@board_array[@coordinate_hash["F8"]])
-		@board_array[@coordinate_hash["F8"]].update("♗")
+		@board_array[@coordinate_hash["F8"]].update("♗",3,0)
 
 		@board_array[@coordinate_hash["G8"]]=Knight.new(@board_array[@coordinate_hash["G8"]])
-		@board_array[@coordinate_hash["G8"]].update("♘")
+		@board_array[@coordinate_hash["G8"]].update("♘",3,0)
 
 		@board_array[@coordinate_hash["H8"]]=Rook.new(@board_array[@coordinate_hash["H8"]])
-		@board_array[@coordinate_hash["H8"]].update("♖")
+		@board_array[@coordinate_hash["H8"]].update("♖",3,0)
 
 		for i in @coordinate_hash["A7"]..(@coordinate_hash["H7"])
 			@board_array[i]=Pawn.new(@board_array[i])
-			@board_array[i].update("♙")
+			@board_array[i].update("♙",3,0)
 		end
 
 	end
@@ -256,29 +256,28 @@ class Board
 	end
 
 	def move(start,destination)
-
-		
+		initial = @board_array[@coordinate_hash[start]]
+		target = @board_array[@coordinate_hash[destination]]
+		#check if the piece to be move is a real piece
 		if @board_array[@coordinate_hash[start]].check_type=="empty"
 			puts "You are trying to move an empty space"
 			puts "Press Enter to try again"
 			wait=gets.chomp
 			return
+		#check to see if the move is valid
 		elsif @board_array[@coordinate_hash[start]].verify(start,destination,@coordinate_hash)
-		#self.board_array[self.coordinate_hash[coordinate]].piece=value
-
-#			temp=@board_array[@coordinate_hash[start]]
-
-#			@board_array[@coordinate_hash[destination]]=temp
-#			puts @board_array[@coordinate_hash[destination]].class
-#			@board_array[@coordinate_hash[destination]].update("")
-
-#			@board_array[@coordinate_hash[start]].update("empty")
-
-
-			#@board_array.swap!(@coordinate_hash[start], @coordinate_hash[destination])
 			if @board_array[@coordinate_hash[destination]].occupied
-				if 
-				puts "you killed a piece"
+				if initial.class==Pawn
+					initial.kill_verify(@coordinate_hash[start],@coordinate_hash[destination])
+				end
+				if initial.piece_color==target.piece_color
+					puts "you cannot kill your own piece"
+					puts "Press Enter to try again"
+					wait=gets.chomp
+					return
+				else
+					puts "you killed your opponent's piece"
+				end
 			end
 			temp = @board_array[@coordinate_hash[start]]
 			start_color=@board_array[@coordinate_hash[start]].color
@@ -295,7 +294,8 @@ class Board
 		end
 	end
 
-
+	def invalid
+	end
  
 end
 
@@ -307,6 +307,9 @@ class Piece
 	attr_accessor :color
 	attr_accessor :occupied
 	attr_accessor :type
+	#0 is for black
+	#1 is for white
+	attr_accessor :piece_color
 	def initialize(color)
 		@piece=" "
 		@coordinate="blah"
@@ -321,7 +324,8 @@ class Piece
 		end
 	end
 
-	def update(value,color=2)
+	def update(value,color=2, piece_color=2)
+		@piece_color=piece_color if piece_color<2
 		@color=color if color<2
 		if value=="empty"
 			@piece=" "
@@ -386,10 +390,31 @@ class Pawn < Piece
 
 
 	def verify(start,destination, coordinate_hash)
-		if (coordinate_hash[destination]-coordinate_hash[start]).abs!=24
-			return false
+		if (coordinate_hash[destination]-coordinate_hash[start])==24
+			if @piece_color==1
+				return true
+			else
+				puts "You can't move a Pawn backwards."
+				return false
+			end
+		elsif (coordinate_hash[destination]-coordinate_hash[start])==-24
+			if @piece_color==0
+				return true
+			else
+				puts "You can't move a Pawn backwards."
+				return false
+			end
 		else
+			return false
+		end
+	end
+
+	def kill_verify(start_index, destination_index)
+		if destination_index-start_index==25 || destination_index-start_index==23
 			return true
+		else
+			puts "Pawns can only kill diagnally"
+			return false
 		end
 	end
 end
@@ -526,23 +551,23 @@ end
 
 #--------------
 board = Board.new
-	board.print_board
-	puts "move?"
-	move=gets.chomp.upcase.split(",")
 
-until move.length==1
+
+##ADD VERIFICATION OF TURN
+#ADD BUCKETS FOR DEAD PIECES
+#CHECK MATTE
+while true do
+	board.print_board
+	puts "White move:"
+	move=gets.chomp.upcase.split(",")
+	break if move.length==1
 	board.move(move[0],move[1])
-
 	board.print_board
-	puts "move?"
+	puts "Black move:"
 	move=gets.chomp.upcase.split(",")
+	break if move.length==1
+	board.move(move[0],move[1])
 end
 
 
-=begin
-MAKE A CLASS FOR EACH PIECE TYPE THAT INHERETS FROM PIECE
-EACH HAS A VALIDITY METHOD
-WHEN PIECES ARE CREATED, MAKE THEM A SPECIFIC PIECE TYPE AND STORE THAT IN THE array
 
-
-=end

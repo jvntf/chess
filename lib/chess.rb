@@ -258,39 +258,75 @@ class Board
 	def move(start,destination)
 		initial = @board_array[@coordinate_hash[start]]
 		target = @board_array[@coordinate_hash[destination]]
-
+		#check if the piece to be move is a real piece
 		if @board_array[@coordinate_hash[start]].check_type=="empty"
 			puts "You are trying to move an empty space"
-			puts "Press Enter to try again"
-			wait=gets.chomp
+			invalid
 			return
+		#check to see if the move is valid
 		elsif @board_array[@coordinate_hash[start]].verify(start,destination,@coordinate_hash)
 			if @board_array[@coordinate_hash[destination]].occupied
+				if initial.class==Pawn
+					if initial.kill_verify(@coordinate_hash[start],@coordinate_hash[destination])
+						puts "hello"
+						valid_kill
+						perform_move
+					else
+						puts "invalid"
+						invalid
+					return
+					end
+				end
 				if initial.piece_color==target.piece_color
 					puts "you cannot kill your own piece"
 					puts "Press Enter to try again"
 					wait=gets.chomp
 					return
 				else
-					puts "you killed your opponent's piece"
+					valid_kill
 				end
 			end
-			temp = @board_array[@coordinate_hash[start]]
-			start_color=@board_array[@coordinate_hash[start]].color
-			end_color=@board_array[@coordinate_hash[destination]].color
-			@board_array[@coordinate_hash[destination]]=temp
-			@board_array[@coordinate_hash[destination]].update(@board_array[@coordinate_hash[destination]].piece,end_color)
+			perform_move(start,destination)
+			#temp = @board_array[@coordinate_hash[start]]
+			#start_color=@board_array[@coordinate_hash[start]].color
+			#end_color=@board_array[@coordinate_hash[destination]].color
+			#@board_array[@coordinate_hash[destination]]=temp
+			#@board_array[@coordinate_hash[destination]].update(@board_array[@coordinate_hash[destination]].piece,end_color)
 			#puts "appear"+@board_array[@coordinate_hash[destination]].appear
-			@board_array[@coordinate_hash[start]]=Piece.new(start_color)
+			#@board_array[@coordinate_hash[start]]=Piece.new(start_color)
 			#puts "class"+@board_array[@coordinate_hash[start]].class.to_s
+		#elsif initial.class==Pawn
+		#	if initial.kill_verify(@coordinate_hash[start],@coordinate_hash[destination])
+		#		perform_move(start,destination)
+		#		valid_kill
+		#	else
+		#		invalid
+		#	end
+		#	return
 		else
-			puts "Invalid move, please consult the rules."
-			puts "Press Enter to try again"
-			wait=gets.chomp
+			invalid
+			#puts "Invalid move, please consult the rules."
+			#puts "Press Enter to try again"
+			#wait=gets.chomp
 		end
 	end
-
-
+	def perform_move(start,destination)
+		temp = @board_array[@coordinate_hash[start]]
+		start_color=@board_array[@coordinate_hash[start]].color
+		end_color=@board_array[@coordinate_hash[destination]].color
+		@board_array[@coordinate_hash[destination]]=temp
+		@board_array[@coordinate_hash[destination]].update(@board_array[@coordinate_hash[destination]].piece,end_color)
+			#puts "appear"+@board_array[@coordinate_hash[destination]].appear
+		@board_array[@coordinate_hash[start]]=Piece.new(start_color)
+	end
+	def valid_kill
+		puts "you killed your opponent's piece"
+	end
+	def invalid
+		puts "Invalid move, please consult the rules."
+		puts "Press Enter to try again"
+		wait=gets.chomp
+	end
  
 end
 
@@ -302,6 +338,8 @@ class Piece
 	attr_accessor :color
 	attr_accessor :occupied
 	attr_accessor :type
+	#0 is for black
+	#1 is for white
 	attr_accessor :piece_color
 	def initialize(color)
 		@piece=" "
@@ -384,17 +422,27 @@ class Pawn < Piece
 
 	def verify(start,destination, coordinate_hash)
 		if (coordinate_hash[destination]-coordinate_hash[start])==24
-			return true
+			if @piece_color==1
+				return true
+			else
+				puts "You can't move a Pawn backwards."
+				return false
+			end
 		elsif (coordinate_hash[destination]-coordinate_hash[start])==-24
-			puts "You can't move a Pawn backwards."
-			return false
+			if @piece_color==0
+				return true
+			else
+				puts "You can't move a Pawn backwards."
+				return false
+			end
 		else
 			return false
 		end
 	end
 
 	def kill_verify(start_index, destination_index)
-		if destination_index-start_index==25 || destination_index-start_index==23
+	
+		if (destination_index-start_index).abs==25 || (destination_index-start_index).abs==23
 			return true
 		else
 			puts "Pawns can only kill diagnally"
