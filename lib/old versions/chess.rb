@@ -1,4 +1,3 @@
-require "yaml"
 class Array
   # swap index of a & b of caller array
   # pry>  [1, 2, 3, 4, 5].swap!(0, 4)
@@ -115,7 +114,7 @@ class Board
 		@board_array[@coordinate_hash["E1"]].update("♚",3,1)
 
 		@board_array[@coordinate_hash["F1"]]=Bishop.new(@board_array[@coordinate_hash["F1"]])
-		@board_array[@coordinate_hash["F1"]].update("♝",0,1)
+		@board_array[@coordinate_hash["F1"]].update("♝",3,1)
 
 		@board_array[@coordinate_hash["G1"]]=Knight.new(@board_array[@coordinate_hash["G1"]])
 		@board_array[@coordinate_hash["G1"]].update("♞",3,1)
@@ -136,7 +135,7 @@ class Board
 		@board_array[@coordinate_hash["B8"]].update("♘",3,0)
 
 		@board_array[@coordinate_hash["C8"]]=Bishop.new(@board_array[@coordinate_hash["C8"]])
-		@board_array[@coordinate_hash["C8"]].update("♗",0,0)
+		@board_array[@coordinate_hash["C8"]].update("♗",3,0)
 
 		@board_array[@coordinate_hash["D8"]]=King.new(@board_array[@coordinate_hash["D8"]])
 		@board_array[@coordinate_hash["D8"]].update("♕",3,0)
@@ -258,39 +257,57 @@ class Board
 
 	def move(start,destination)
 		initial = @board_array[@coordinate_hash[start]]
-		start_index=@coordinate_hash[start]
-		initial_color=initial.piece_color
 		target = @board_array[@coordinate_hash[destination]]
-		destination_index=@coordinate_hash[destination]
 		#check if the piece to be move is a real piece
-		if @board_array[@coordinate_hash[start]].class==Piece
+		if @board_array[@coordinate_hash[start]].check_type=="empty"
 			puts "You are trying to move an empty space"
-			invalid(initial_color)
+			invalid
 			return
 		#check to see if the move is valid
 		elsif @board_array[@coordinate_hash[start]].verify(start,destination,@coordinate_hash)
 			if @board_array[@coordinate_hash[destination]].occupied
-
-			if !opponent?(initial,target)
-				return
-			end
+				if initial.class==Pawn
+					if initial.kill_verify(@coordinate_hash[start],@coordinate_hash[destination])
+						puts "hello"
+						valid_kill
+						perform_move
+					else
+						puts "invalid"
+						invalid
+					return
+					end
+				end
+				if initial.piece_color==target.piece_color
+					puts "you cannot kill your own piece"
+					puts "Press Enter to try again"
+					wait=gets.chomp
+					return
+				else
+					valid_kill
+				end
 			end
 			perform_move(start,destination)
-			
-		elsif @board_array[@coordinate_hash[start]].class==Pawn && @board_array[@coordinate_hash[start]].kill_verify(start_index,destination_index)
-			perform_move(start,destination)
-			valid_kill
+			#temp = @board_array[@coordinate_hash[start]]
+			#start_color=@board_array[@coordinate_hash[start]].color
+			#end_color=@board_array[@coordinate_hash[destination]].color
+			#@board_array[@coordinate_hash[destination]]=temp
+			#@board_array[@coordinate_hash[destination]].update(@board_array[@coordinate_hash[destination]].piece,end_color)
+			#puts "appear"+@board_array[@coordinate_hash[destination]].appear
+			#@board_array[@coordinate_hash[start]]=Piece.new(start_color)
+			#puts "class"+@board_array[@coordinate_hash[start]].class.to_s
+		#elsif initial.class==Pawn
+		#	if initial.kill_verify(@coordinate_hash[start],@coordinate_hash[destination])
+		#		perform_move(start,destination)
+		#		valid_kill
+		#	else
+		#		invalid
+		#	end
+		#	return
 		else
-			invalid(initial_color)
-		end
-	end
-	def opponent?(initial,target)
-		if initial.piece_color==target.piece_color
-			puts "you cannot kill your own piece"
-			invalid(initial.piece_color)
-			return false
-		else
-			return true
+			invalid
+			#puts "Invalid move, please consult the rules."
+			#puts "Press Enter to try again"
+			#wait=gets.chomp
 		end
 	end
 	def perform_move(start,destination)
@@ -299,58 +316,18 @@ class Board
 		end_color=@board_array[@coordinate_hash[destination]].color
 		@board_array[@coordinate_hash[destination]]=temp
 		@board_array[@coordinate_hash[destination]].update(@board_array[@coordinate_hash[destination]].piece,end_color)
+			#puts "appear"+@board_array[@coordinate_hash[destination]].appear
 		@board_array[@coordinate_hash[start]]=Piece.new(start_color)
 	end
 	def valid_kill
 		puts "you killed your opponent's piece"
 	end
-	def invalid(current_turn)
+	def invalid
 		puts "Invalid move, please consult the rules."
 		puts "Press Enter to try again"
 		wait=gets.chomp
-		if current_turn==0
-			black_move
-		else
-			white_move
-		end
 	end
-
-	def check?(king_color,king_coordinate="")
-		@coordinate_hash.each do |key,value|
-			king_coordinate = key if @board_array[value].class==King && @board_array[value].piece_color==king_color
-		end
-		#puts "KING coordinate #{king_coordinate}"
-		opponent = 0
-		opponent =1 if king_color==0
-
-		@coordinate_hash.each do |key,value|
-	
-			test_piece=@board_array[value]
-			if test_piece.piece_color==opponent
-				#do a thing
-				return true if test_piece.verify(key,king_coordinate,@coordinate_hash)
-			else
-				next
-			end
-		end
-		return false
-	end
-
-	def check_mate?(king_color)
-		king_coordinate=""
-		@coordinate_hash.each do |key,value|
-			king_coordinate = key if @board_array[value].class==King && @board_array[value].piece_color==king_color
-		end
-		test_vals=[1,-1,24,-24,23,-23,25,-25]
-		test_vals.each do |i|
-			if !check?(king_color, @coordinate_hash[@coordinate_hash.key(king_coordinate)+i]) && i==-25
-				return true
-			else
-				false
-			end
-		end
-	end
-
+ 
 end
 
 
@@ -393,6 +370,36 @@ class Piece
 			
 		else
 			@appear="   #{@piece}   "
+		end
+	end
+
+#CHANGE THIS METHOD SO IT JUST SETS THE 
+#TYPES WHEN POPULATING
+# THIS METHOD IS POINTLESS
+
+	def check_type
+		case self.piece
+		when "♖","♜"
+			@type="rook"
+			return "rook"
+		when "♝","♗"
+			@type="bishop"
+			return "bishop"
+		when "♘","♞"
+			@type="knight"	
+			return "knight"
+		when "♕","♛"
+			@type="king"
+			return "king"
+		when "♔","♚"
+			@type="queen"
+			return "queen"
+		when "♙","♟"
+			@type="pawn"
+			return "pawn"
+		
+		else
+			return "empty"
 		end
 	end
 
@@ -479,13 +486,6 @@ class Knight < Piece
 
 	def verify(start,destination, coordinate_hash)
 
-	def initialize(piece)
-		@piece=piece.piece
-		@coordinate=piece.coordinate
-		@type=piece.type
-		@color=piece.color
-		@appear=piece.appear
-	end
 		case (coordinate_hash[destination]-coordinate_hash[start]).abs
 		when 22 then return true
 		when 26 then return true
@@ -499,6 +499,13 @@ end
 
 class Bishop < Piece
 
+	def initialize(piece)
+		@piece=piece.piece
+		@coordinate=piece.coordinate
+		@type=piece.type
+		@color=piece.color
+		@appear=piece.appear
+	end
 
 
 	def verify(start,destination, coordinate_hash)
@@ -575,124 +582,24 @@ class Queen < Piece
 end
 
 #--------------
-
-def black_move
-	puts "Black move:"
-	move=gets.chomp.upcase.split(",")
-	if move.length==1
-		if save_quit(move[0])=="invalid"
-			$board.invalid(0)
-		else
-			save_quit(move[0])
-			$continue=false
-			return $continue
-		end
-	else
-		if !yours?(move[0],0)
-			puts "That's not yours!"
-			$board.invalid(0)
-			return
-		end
-
-		$board.move(move[0],move[1])
-		if $board.check?(0)
-			if $board.check_mate?(0)
-				puts "YOU ARE IN CHECK MATE GAME OVER"
-			else
-				puts "YOU ARE IN CHECK"
-			end
-			waits=gets.chomp
-		end
-		$board.print_board
-	end
-end
-
-def white_move
-	puts "White move:"
-	move=gets.chomp.upcase.split(",")
-	if move.length==1
-		if save_quit(move[0])=="invalid"
-			$board.invalid(1)
-		else
-			save_quit(move[0])
-			$continue=false
-			return $continue
-		end
-	else		
-		if !yours?(move[0],1)
-			puts "That's not yours!"
-			$board.invalid(1)
-			return
-		end
-		$board.move(move[0],move[1])
-		if $board.check?(1)
-			if $board.check_mate?(1)
-				puts "YOU ARE IN CHECK MATE GAME OVER"
-			else
-				puts "YOU ARE IN CHECK"
-			end
-			waits=gets.chomp
-		end
-		$board.print_board
-	end
-end
-
-def yours?(piece,color)
-	if $board.board_array[$board.coordinate_hash[piece]].piece_color==color
-	
-		return true
-	else
-		return false
-	end
-end
+board = Board.new
 
 
-def save_quit(move="LOAD")
-	if move=="SAVE"
-		#$yaml_file.print(YAML::dump(board))
-		puts "hello"
-		f=File.new("thing.yaml","w")
-		f.puts(YAML::dump($board.board_array))
-		puts $save_array
-		move=[0]
-		return move
-	elsif move=="QUIT"
-		return
-	elsif move=="LOAD"
-
-
-		File.open("/thing.yaml", "r").each do |object|
- 			$board.board_array << YAML::load(object)
-		end
-		
-	else
-		return "invalid"
-	end
-end
 ##ADD VERIFICATION OF TURN
 #ADD BUCKETS FOR DEAD PIECES
 #CHECK MATTE
-$board = Board.new
-$save_array=[]
-
-
-$continue=true
-
-#LOAD GAME FUNCTION
-=begin
-puts "load game?"
-answer=gets.chomp
-if answer=="y"
-	save_quit
+while true do
+	board.print_board
+	puts "White move:"
+	move=gets.chomp.upcase.split(",")
+	break if move.length==1
+	board.move(move[0],move[1])
+	board.print_board
+	puts "Black move:"
+	move=gets.chomp.upcase.split(",")
+	break if move.length==1
+	board.move(move[0],move[1])
 end
-=end
-puts "type 'quit' at any time to exit"
-$board.print_board
-while $continue do
-	break if !$continue
-	white_move
-	break if !$continue
-	black_move
-end
+
 
 
