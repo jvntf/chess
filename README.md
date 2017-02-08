@@ -1,6 +1,6 @@
 # Chess
 
-Command line chess game writtin Ruby
+Command line chess game written in Ruby
 
 This game is a work in progress.
 
