@@ -1,4 +1,4 @@
-# chess
+# Chess
 
 Command line chess game writtin Ruby
 
@@ -12,4 +12,4 @@ Allow for retry if invalid move is input
 Piece killing verification
 
 To be added:
-Save game / serialization function
+game save / serialization function
